@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<title>新闻任务言论自动提取</title>
+	
+	<link rel="stylesheet" href="/css/bootstrap.min.css">  
+	<!-- <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script> -->
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/d3.v3.min.js" charset="utf-8"></script>
+	<script src="/js/buildTree.js"></script>
+	<style type="text/css">
+		g.node {
+            font-family: Verdana, Helvetica;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        circle.node-dot {
+            fill: lightsalmon;
+            stroke: red;
+            stroke-width: 1px;
+        }
+
+        path.link {
+            fill: none;
+            stroke: gray;
+        }
+	</style>
+	
+</head>
+<body style="background-color:#D0D0D0">
+
+<div class="container ">
+	<div class="row clearfix">
+		<div class="col-md-10 col-md-offset-1 column">
+			<br>
+			<h2>
+				新闻人物言论自动提取
+			</h2>
+			<br>
+			<h3>News Classfication Result</h3> 
+			<div id="tree-container"></div>
+			<div id="van"><div> 
+			<br>
+			
+			
+			<form role="form">
+				<div class="form-group">
+					 <label for="newsInput">Input Your News:</label>
+					 <textarea class="form-control" id="newsInput" name="saying" rows="4"></textarea>
+					 <!-- <input class="form-control" id="newsInput" name="saying" type="text" /> -->
+				</div>
+				 <button class="btn btn-primary" id="get_say" type="submit">Submit</button>
+			</form>		
+			<br><br><BR><BR>
+			<div class="" id="result">
+				<p id="result">分析结果：</p>
+				<table class="table table-striped bg-info" id="saying_table">
+					<thead>
+						<tr>
+							<th>
+								PEOPLE
+							</th>
+							<th>
+								VIEW	
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						
+					</tbody>
+				</table>
+			</div>
+		<BR><BR>
+		<p></p>
+			<div id="footer" style="text-align:center">Copyright&copy;2019&nbsp;&nbsp;&nbsp;&nbsp;   NLP-2019-Summer Springs Team&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All Right Reseverd.</div>
+		</div>
+	</div>
+</div>
+
+</body>
+
+<script>
+	
+	var $SCRIPT_ROOT = "/";
+	$(function() {
+		$("#result").hide();
+		d3.json("/result/top15.json", function(error, treeData) {
+		  var treeData_good = {
+				name:'部分结果',
+				contents: [],
+		  };
+		  $.each(treeData, function(key, value){
+				
+				results=[];
+				for(var i=0;i<value.length;i++){
+					var saying = (value[i][0]+' - '+value[i][1]).substring(0,65);
+					var result = {
+						name: saying
+					};
+					results.push(result);
+				}
+				var types ={
+					name:key,
+					contents:results,
+				};
+				treeData_good.contents.push(types);
+				
+		  }
+		  );
+		  buildTree('#tree-container',treeData_good);
+		});
+		
+		var submit_form = function(e) {
+		  $.getJSON($SCRIPT_ROOT + 'get_saying', {
+			saying: $('textarea[name="saying"]').val(),
+		  }, function(data) {
+			var str = "";
+			$('#saying_table tr:not(:first)').remove();  
+			for(var key in data){
+				var row="<tr><td>"+key+"</td><td>"+data[key]+"</td></tr>"
+				
+				$(row).insertAfter($("#saying_table tr:eq(0)")); 
+			}
+			if(jQuery.isEmptyObject(data)){
+				$("#result").hide();
+			}else{
+				$("#result").show();
+			}
+			
+			$('textarea[name=saying]').focus().select();
+		  });
+		  return false;
+		};
+
+    $('#get_say').bind('click', submit_form);
+
+    $('textarea[name=saying]').bind('keydown', function(e) {
+      if (e.keyCode == 13) {
+        submit_form(e);
+      }
+    });
+
+		$('textarea[name=saying]').focus();
+	});	
+	</script>
+</html>
+</html>
